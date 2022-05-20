@@ -14,68 +14,125 @@ import (
 )
 
 func main() {
-	//"https://youtu.be/qzjGLgezuQk"
+	commands := []Command{
+		Command{
+			Name:    "!echo",
+			Handler: EchoCommander{},
+		},
+		Command{
+			Name:    "!recursion",
+			Handler: RecursionCommander{},
+		},
+		Command{
+			Name:    "!eval",
+			Handler: NootlangCommander{},
+		},
+	}
+
 	if len(os.Args) < 2 {
 		log.Fatal("Must provide URL as first argument")
 	}
-	livestreamId := os.Args[1]
-	log.Println(livestreamId)
 
-	ctx := context.Background()
+	if os.Args[1] != "test" {
+		livestreamId := os.Args[1]
+		log.Println(livestreamId)
 
-	b, err := ioutil.ReadFile("token.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		ctx := context.Background()
+
+		b, err := ioutil.ReadFile("token.json")
+		if err != nil {
+			log.Fatalf("Unable to read client secret file: %v", err)
+		}
+
+		// If modifying these scopes, delete your previously saved credentials
+		// at ~/.credentials/youtube-go-quickstart.json
+		config, err := google.ConfigFromJSON(b, youtube.YoutubeScope)
+		if err != nil {
+			log.Fatalf("Unable to parse client secret file to config: %v", err)
+		}
+		client := getClient(ctx, config)
+		service, err := youtube.New(client)
+
+		handleError(err, "Error creating YouTube client")
+
+		chatIds := fetchChatIds([]string{livestreamId}, service)
+
+		liveChatId, ok := chatIds[livestreamId]
+		if !ok {
+			panic("Failed to get chat ID")
+		}
+
+		fmt.Println("Live chat Id", liveChatId)
+		nooter := Noot{
+			service:    service,
+			liveChatId: liveChatId,
+			commands: commands,
+			test: false,
+		}
+
+		message := "Hello World"
+		nooter.SendMessage(message)
+
+		nooter.Listen()
+	} else {
+		nooter := Noot{
+			commands: commands,
+			test: true,
+		}
+		nooter.TestListen()
 	}
-
-	// If modifying these scopes, delete your previously saved credentials
-	// at ~/.credentials/youtube-go-quickstart.json
-	config, err := google.ConfigFromJSON(b, youtube.YoutubeScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	client := getClient(ctx, config)
-	service, err := youtube.New(client)
-
-	handleError(err, "Error creating YouTube client")
-
-	chatIds := fetchChatIds([]string{livestreamId}, service)
-
-	liveChatId, ok := chatIds[livestreamId]
-	if !ok {
-		panic("Failed to get chat ID")
-	}
-
-	fmt.Println("Live chat Id", liveChatId)
-	nooter := Noot{
-		service:    service,
-		liveChatId: liveChatId,
-	}
-
-	message := "Hello World"
-	nooter.SendMessage(message)
-
-	nooter.Listen()
 }
 
 type Noot struct {
 	service    *youtube.Service
 	liveChatId string
+	commands []Command
+	test bool
 }
 
 func (n *Noot) SendMessage(message string) {
-	call := n.service.LiveChatMessages.Insert([]string{"snippet"}, &youtube.LiveChatMessage{
-		Snippet: &youtube.LiveChatMessageSnippet{
-			LiveChatId: n.liveChatId,
-			Type:       "textMessageEvent",
-			TextMessageDetails: &youtube.LiveChatTextMessageDetails{
-				MessageText: message,
+	if n.test {
+		fmt.Println("Sending Message: ", message)
+	} else {
+		call := n.service.LiveChatMessages.Insert([]string{"snippet"}, &youtube.LiveChatMessage{
+			Snippet: &youtube.LiveChatMessageSnippet{
+				LiveChatId: n.liveChatId,
+				Type:       "textMessageEvent",
+				TextMessageDetails: &youtube.LiveChatTextMessageDetails{
+					MessageText: message,
+				},
 			},
-		},
-	})
-	_, err := call.Do()
-	if err != nil {
-		fmt.Println("Error sending message: ", message, " On Channel: ", n.liveChatId, " Error Was: ", err)
+		})
+		_, err := call.Do()
+		if err != nil {
+			fmt.Println("Error sending message: ", message, " On Channel: ", n.liveChatId, " Error Was: ", err)
+		}
+	}
+}
+
+func (n *Noot) TestListen() {
+	fmt.Println("Running Test mode!")
+	displayMessage := "!echo hello worldddd"
+
+	for _, cmd := range n.commands {
+		prefix, postfix, found := strings.Cut(displayMessage, cmd.Name)
+		if !found {
+			continue
+		}
+
+		message := Message{
+			Author: User{
+				Id:   "123455",
+				Name: "UnitOfTime",
+			},
+			Parsed: ParsedMessage{
+				Command: cmd.Name,
+				Prefix:  prefix,
+				Postfix: postfix,
+			},
+		}
+
+		cmd.Handler.Handle(n, message)
 	}
 }
 
@@ -84,72 +141,64 @@ func (n *Noot) Listen() {
 	allPreviousMessagesRead := false
 
 	for {
-		call := n.service.LiveChatMessages.List(n.liveChatId, []string{"snippet,authorDetails"})
-		if currentToken != "" {
-			call.PageToken(currentToken)
-		}
-
-		resp, err := call.Do()
-		if err != nil {
-			fmt.Println("Error with LiveChatMessages.List", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		currentToken = resp.NextPageToken
-
-		// Read until the length of the response items is 0, then we know we've read all of the pre-existing messages
-		log.Println("Read messages:", len(resp.Items))
-
-		if !allPreviousMessagesRead && len(resp.Items) == 0 {
-			log.Println("Finished reading all previous messages")
-			allPreviousMessagesRead = true
-		}
-		if !allPreviousMessagesRead {
-			log.Println("Skipping Old messages", len(resp.Items))
-			continue
-		}
-
-		commands := []Command{
-			Command{
-				Name:    "!echo",
-				Handler: EchoCommander{},
-			},
-			Command{
-				Name:    "!recursion",
-				Handler: RecursionCommander{},
-			},
-			Command{
-				Name:    "!eval",
-				Handler: NootlangCommander{},
-			},
-		}
-
-		for _, item := range resp.Items {
-			for _, cmd := range commands {
-				prefix, postfix, found := strings.Cut(item.Snippet.DisplayMessage, cmd.Name)
-				if !found {
-					continue
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Println("Recovering from panic: ", r)
 				}
-
-				message := Message{
-					Author: User{
-						Id:   item.AuthorDetails.ChannelId,
-						Name: item.AuthorDetails.DisplayName,
-					},
-					Parsed: ParsedMessage{
-						Command: cmd.Name,
-						Prefix:  prefix,
-						Postfix: postfix,
-					},
-				}
-
-				cmd.Handler.Handle(n, message)
+			}()
+			call := n.service.LiveChatMessages.List(n.liveChatId, []string{"snippet,authorDetails"})
+			if currentToken != "" {
+				call.PageToken(currentToken)
 			}
-		}
 
-		// time.Sleep(time.Duration(resp.PollingIntervalMillis) * time.Millisecond)
-		time.Sleep(3 * time.Second)
+			resp, err := call.Do()
+			if err != nil {
+				fmt.Println("Error with LiveChatMessages.List", err)
+				time.Sleep(5 * time.Second)
+				return
+			}
+
+			currentToken = resp.NextPageToken
+
+			// Read until the length of the response items is 0, then we know we've read all of the pre-existing messages
+			log.Println("Read messages:", len(resp.Items))
+
+			if !allPreviousMessagesRead && len(resp.Items) == 0 {
+				log.Println("Finished reading all previous messages")
+				allPreviousMessagesRead = true
+			}
+			if !allPreviousMessagesRead {
+				log.Println("Skipping Old messages", len(resp.Items))
+				return
+			}
+
+			for _, item := range resp.Items {
+				for _, cmd := range n.commands {
+					prefix, postfix, found := strings.Cut(item.Snippet.DisplayMessage, cmd.Name)
+					if !found {
+						continue
+					}
+
+					message := Message{
+						Author: User{
+							Id:   item.AuthorDetails.ChannelId,
+							Name: item.AuthorDetails.DisplayName,
+						},
+						Parsed: ParsedMessage{
+							Command: cmd.Name,
+							Prefix:  prefix,
+							Postfix: postfix,
+						},
+					}
+
+					cmd.Handler.Handle(n, message)
+				}
+			}
+
+			// time.Sleep(time.Duration(resp.PollingIntervalMillis) * time.Millisecond)
+			time.Sleep(5 * time.Second)
+		}()
 	}
 }
 
