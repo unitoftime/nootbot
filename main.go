@@ -119,6 +119,10 @@ func (n *Noot) Listen() {
 				Name:    "!recursion",
 				Handler: RecursionCommander{},
 			},
+			Command{
+				Name:    "!eval",
+				Handler: NootlangCommander{},
+			},
 		}
 
 		for _, item := range resp.Items {
