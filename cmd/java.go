@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 // The `!java` command generates a random Java variable assignment
 type JavaCommander struct{}
 
-func (jc JavaCommander) Handle(n *Noot, msg Message) {
-	n.SendMessage(genJava())
+func (jc JavaCommander) Handle(n ApiNooter, msg Message) {
+	n.NootMessage(genJava())
 }
 
 func genJava() string {

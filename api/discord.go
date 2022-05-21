@@ -1,0 +1,93 @@
+package api
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/bwmarrin/discordgo"
+
+	"github.com/unitoftime/nootbot/cmd"
+)
+
+type Discord struct {
+	session *discordgo.Session
+	commands []cmd.Command
+}
+
+func NewDiscord(token string, commands []cmd.Command) *Discord {
+	session, err := discordgo.New("Bot " + token)
+	if err != nil {
+		panic(err)
+	}
+
+	session.Identify.Intents = discordgo.IntentsGuildMessages
+
+	discord := &Discord{
+		session: session,
+		commands: commands,
+	}
+	return discord
+}
+
+func (d *Discord) Listen() {
+	err := d.session.Open()
+	if err != nil {
+		panic(err)
+	}
+
+	d.session.AddHandler(d.handleMessages)
+}
+
+// Handles MessageCreate events
+func (d *Discord) handleMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Ignore all messages created by the bot itself
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Println("Recovering from panic: ", r)
+			}
+		}()
+
+		for _, command := range d.commands {
+			prefix, postfix, found := strings.Cut(m.Content, command.Name)
+			if !found {
+				continue
+			}
+
+			message := cmd.Message{
+				Author: cmd.User{
+					Id:   m.Author.ID,
+					Name: m.Author.Username,
+				},
+				Parsed: cmd.ParsedMessage{
+					Command: command.Name,
+					Prefix:  prefix,
+					Postfix: postfix,
+				},
+			}
+
+			nooter := &DiscordChannelNooter{
+				channel: m.ChannelID,
+				session: d.session,
+			}
+			command.Handler.Handle(nooter, message)
+		}
+	}()
+}
+
+type DiscordChannelNooter struct {
+	channel string
+	session *discordgo.Session
+}
+
+func (d *DiscordChannelNooter) NootMessage(msg string) {
+	d.session.ChannelMessageSend(d.channel, msg)
+}
+
+func (d *DiscordChannelNooter) NootComplexMessage(complexMessage *discordgo.MessageSend) {
+	d.session.ChannelMessageSendComplex(d.channel, complexMessage)
+}

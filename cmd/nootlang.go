@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -10,17 +10,17 @@ import (
 
 type NootlangCommander struct{}
 
-func (c NootlangCommander) Handle(n *Noot, msg Message) {
+func (c NootlangCommander) Handle(n ApiNooter, msg Message) {
 	str := msg.Parsed.Postfix
 
 	tokens, err := parser.Tokenize(str)
 	if err != nil {
-		n.SendMessage(fmt.Sprintf("Error while tokenizing source code: %s", err))
+		n.NootMessage(fmt.Sprintf("Error while tokenizing source code: %s", err))
 	}
 
 	nodes, err := parser.Parse(tokens)
 	if err != nil {
-		n.SendMessage(fmt.Sprintf("Error while parsing source code: %s", err))
+		n.NootMessage(fmt.Sprintf("Error while parsing source code: %s", err))
 	}
 
 	stdout := make(chan string)
@@ -40,6 +40,6 @@ func (c NootlangCommander) Handle(n *Noot, msg Message) {
 	fmt.Printf("Noot program exited with exit code %s\n", exitCode)
 }
 
-func outHandler(n *Noot, out chan string) {
-	n.SendMessage(<-out)
+func outHandler(n ApiNooter, out chan string) {
+	n.NootMessage(<-out)
 }

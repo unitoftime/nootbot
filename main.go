@@ -4,254 +4,91 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
-	"time"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/youtube/v3"
+	"github.com/unitoftime/nootbot/api"
+	"github.com/unitoftime/nootbot/cmd"
 )
 
 func main() {
-	commands := []Command{
-		Command{
+	commands := []cmd.Command{
+		cmd.Command{
 			Name:    "!echo",
-			Handler: EchoCommander{},
+			Handler: cmd.EchoCommander{},
 		},
-		Command{
+		cmd.Command{
 			Name:    "!recursion",
-			Handler: RecursionCommander{},
+			Handler: cmd.RecursionCommander{},
 		},
-		Command{
+		cmd.Command{
 			Name:    "!eval",
-			Handler: NootlangCommander{},
+			Handler: cmd.NootlangCommander{},
 		},
-		Command{
+		cmd.Command{
 			Name:    "!java",
-			Handler: JavaCommander{},
+			Handler: cmd.JavaCommander{},
 		},
+		cmd.Command{
+			Name:    "!noot",
+			Handler: cmd.NootCommander{},
+		},
+		// cmd.Command{
+		// 	Name:    "!dogo",
+		// 	Handler: cmd.DogoCommander{},
+		// },
+		// cmd.Command{
+		// 	Name:    "!random",
+		// 	Handler: cmd.RandomCommander{},
+		// },
 	}
+
+	infoHandler := cmd.NewInfoCommander(commands)
+	infoCmd := cmd.Command{
+		Name: "!commands",
+		Handler: infoHandler,
+	}
+	infoCmd2 := cmd.Command{
+		Name: "!info",
+		Handler: infoHandler,
+	}
+	commands = append(commands, infoCmd)
+	commands = append(commands, infoCmd2)
 
 	if len(os.Args) < 2 {
 		log.Fatal("Must provide URL as first argument")
 	}
 
-	if os.Args[1] != "test" {
+	if os.Args[1] == "discord" {
+		token, err := ioutil.ReadFile("discord.token")
+    if err != nil {
+			panic(err)
+    }
+		discord := api.NewDiscord(strings.TrimSuffix(string(token), "\n"), commands)
+		discord.Listen()
+	} else if os.Args[1] != "test" {
 		livestreamId := os.Args[1]
 		log.Println(livestreamId)
 
-		ctx := context.Background()
-
-		b, err := ioutil.ReadFile("token.json")
+		ytToken, err := ioutil.ReadFile("token.json")
 		if err != nil {
 			log.Fatalf("Unable to read client secret file: %v", err)
 		}
 
-		// If modifying these scopes, delete your previously saved credentials
-		// at ~/.credentials/youtube-go-quickstart.json
-		config, err := google.ConfigFromJSON(b, youtube.YoutubeScope)
-		if err != nil {
-			log.Fatalf("Unable to parse client secret file to config: %v", err)
-		}
-		client := getClient(ctx, config)
-		service, err := youtube.New(client)
-
-		handleError(err, "Error creating YouTube client")
-
-		chatIds := fetchChatIds([]string{livestreamId}, service)
-
-		liveChatId, ok := chatIds[livestreamId]
-		if !ok {
-			panic("Failed to get chat ID")
-		}
-
-		fmt.Println("Live chat Id", liveChatId)
-		nooter := Noot{
-			service:    service,
-			liveChatId: liveChatId,
-			commands:   commands,
-			test:       false,
-		}
-
-		message := "Hello World"
-		nooter.SendMessage(message)
-
-		nooter.Listen()
+		youtube := api.NewYoutubeLive(ytToken, commands, livestreamId)
+		youtube.Listen()
 	} else {
-		nooter := Noot{
-			commands: commands,
-			test:     true,
-		}
-		nooter.TestListen()
-	}
-}
+		test := api.NewTest(commands)
 
-type Noot struct {
-	service    *youtube.Service
-	liveChatId string
-	commands   []Command
-	test       bool
-}
-
-func (n *Noot) SendMessage(message string) {
-	if n.test {
-		fmt.Println("Sending Message: ", message)
-	} else {
-		call := n.service.LiveChatMessages.Insert([]string{"snippet"}, &youtube.LiveChatMessage{
-			Snippet: &youtube.LiveChatMessageSnippet{
-				LiveChatId: n.liveChatId,
-				Type:       "textMessageEvent",
-				TextMessageDetails: &youtube.LiveChatTextMessageDetails{
-					MessageText: message,
-				},
-			},
-		})
-		_, err := call.Do()
-		if err != nil {
-			fmt.Println("Error sending message: ", message, " On Channel: ", n.liveChatId, " Error Was: ", err)
-		}
-	}
-}
-
-func (n *Noot) TestListen() {
-	fmt.Println("Running Test mode!")
-	displayMessage := "!echo hello worldddd"
-
-	for _, cmd := range n.commands {
-		prefix, postfix, found := strings.Cut(displayMessage, cmd.Name)
-		if !found {
-			continue
-		}
-
-		message := Message{
-			Author: User{
-				Id:   "123455",
-				Name: "UnitOfTime",
-			},
-			Parsed: ParsedMessage{
-				Command: cmd.Name,
-				Prefix:  prefix,
-				Postfix: postfix,
-			},
-		}
-
-		cmd.Handler.Handle(n, message)
-	}
-}
-
-func (n *Noot) Listen() {
-	currentToken := ""
-	allPreviousMessagesRead := false
-
-	for {
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					fmt.Println("Recovering from panic: ", r)
-				}
-			}()
-			call := n.service.LiveChatMessages.List(n.liveChatId, []string{"snippet,authorDetails"})
-			if currentToken != "" {
-				call.PageToken(currentToken)
-			}
-
-			resp, err := call.Do()
-			if err != nil {
-				fmt.Println("Error with LiveChatMessages.List", err)
-				time.Sleep(5 * time.Second)
-				return
-			}
-
-			currentToken = resp.NextPageToken
-
-			// Read until the length of the response items is 0, then we know we've read all of the pre-existing messages
-			log.Println("Read messages:", len(resp.Items))
-
-			if !allPreviousMessagesRead && len(resp.Items) == 0 {
-				log.Println("Finished reading all previous messages")
-				allPreviousMessagesRead = true
-			}
-			if !allPreviousMessagesRead {
-				log.Println("Skipping Old messages", len(resp.Items))
-				return
-			}
-
-			for _, item := range resp.Items {
-				for _, cmd := range n.commands {
-					prefix, postfix, found := strings.Cut(item.Snippet.DisplayMessage, cmd.Name)
-					if !found {
-						continue
-					}
-
-					message := Message{
-						Author: User{
-							Id:   item.AuthorDetails.ChannelId,
-							Name: item.AuthorDetails.DisplayName,
-						},
-						Parsed: ParsedMessage{
-							Command: cmd.Name,
-							Prefix:  prefix,
-							Postfix: postfix,
-						},
-					}
-
-					cmd.Handler.Handle(n, message)
-				}
-			}
-
-			// time.Sleep(time.Duration(resp.PollingIntervalMillis) * time.Millisecond)
-			time.Sleep(5 * time.Second)
-		}()
-	}
-}
-
-type User struct {
-	Id   string // This is the channel id. I think this can't change?
-	Name string // This is the users current display name. I think this can change
-}
-
-type ParsedMessage struct {
-	Command string // This is the command that was detected
-	Prefix  string // This is string before the command
-	Postfix string // This is the string after the command
-}
-
-type Message struct {
-	Author User          // This is the person who sent the Message
-	Parsed ParsedMessage // This is the parsed message
-}
-
-type Command struct {
-	Name    string // The command string to search for
-	Handler Commander
-}
-
-type Commander interface {
-	Handle(*Noot, Message)
-}
-
-type EchoCommander struct {
-}
-
-func (c EchoCommander) Handle(n *Noot, msg Message) {
-	n.SendMessage(msg.Parsed.Prefix + msg.Parsed.Postfix)
-	// n.SendMessage(fmt.Sprintf("%s %s", msg.Prefix, msg.Postfix)
-}
-
-type RecursionCommander struct {
-}
-
-func (c RecursionCommander) Handle(n *Noot, msg Message) {
-	str := msg.Parsed.Command + " " + msg.Parsed.Prefix + msg.Parsed.Command + msg.Parsed.Postfix
-
-	stackSize := 5
-
-	count := strings.Count(str, msg.Parsed.Command)
-	if count > stackSize {
-		n.SendMessage("Stack Overflow!")
-		return
+		test.NootMessage("Starting Test API")
+		test.Listen()
 	}
 
-	n.SendMessage(str)
+	// Wait here until CTRL-C or other term signal is received.
+	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
 }

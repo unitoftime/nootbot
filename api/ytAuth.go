@@ -1,6 +1,6 @@
 // Sample Go code for user authorization
 // Not stolen from: https://developers.google.com/youtube/v3/quickstart/go
-package main
+package api
 
 import (
 	"encoding/json"
