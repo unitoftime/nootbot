@@ -116,7 +116,8 @@ func (n *Noot) SendMessage(message string) {
 
 func (n *Noot) TestListen() {
 	fmt.Println("Running Test mode!")
-	displayMessage := "!echo hello worldddd"
+	// displayMessage := "!echo hello worldddd"
+	displayMessage := "!java"
 
 	for _, cmd := range n.commands {
 		prefix, postfix, found := strings.Cut(displayMessage, cmd.Name)

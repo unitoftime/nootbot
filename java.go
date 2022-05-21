@@ -32,7 +32,7 @@ func genJava() string {
 		"Parameter", "Adapter", "Bridge", "Decorator", "Facade", "Proxy",
 		"Worker", "Interpreter", "Iterator", "Observer", "Request",
 		"Transformer", "Interface", "State", "Template", "Task", "Resolver",
-		"Definition", "Getter", "Settere", "Listener", "Processor", "Printer",
+		"Definition", "Getter", "Setter", "Listener", "Processor", "Printer",
 		"Prototype", "Protocol", "Trait", "Composer", "Event", "Helper", "Utils",
 		"Exporter", "Importer", "Serializer", "Factory", "Callback", "Context",
 		"Tests", "Annotation", "Service", "Factory", "Dispatcher", "Client",
