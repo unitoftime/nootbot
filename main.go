@@ -27,6 +27,10 @@ func main() {
 			Name:    "!eval",
 			Handler: NootlangCommander{},
 		},
+		Command{
+			Name:    "!java",
+			Handler: JavaCommander{},
+		},
 	}
 
 	if len(os.Args) < 2 {
@@ -66,8 +70,8 @@ func main() {
 		nooter := Noot{
 			service:    service,
 			liveChatId: liveChatId,
-			commands: commands,
-			test: false,
+			commands:   commands,
+			test:       false,
 		}
 
 		message := "Hello World"
@@ -77,7 +81,7 @@ func main() {
 	} else {
 		nooter := Noot{
 			commands: commands,
-			test: true,
+			test:     true,
 		}
 		nooter.TestListen()
 	}
@@ -86,8 +90,8 @@ func main() {
 type Noot struct {
 	service    *youtube.Service
 	liveChatId string
-	commands []Command
-	test bool
+	commands   []Command
+	test       bool
 }
 
 func (n *Noot) SendMessage(message string) {
