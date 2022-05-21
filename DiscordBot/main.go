@@ -18,7 +18,7 @@ var crates = []Crate{
 		Name:      "Std",
 		Author:    "Dracula",
 		Prefix:    "!",
-		ChannelID: "661170976528007189",
+		ChannelID: "*",
 		Commands: []Command{
 			{Name: "Info", Args: 0, Handler: &InfoCommander{}},
 			{Name: "Noot", Args: 0, Handler: NootCommander{}},
@@ -31,7 +31,7 @@ var crates = []Crate{
 		Name:      "NootLang",
 		Author:    "Jomy",
 		Prefix:    "!",
-		ChannelID: "661170976528007189",
+		ChannelID: "*",
 		Commands: []Command{
 			{Name: "Eval", Args: -1, Handler: NootlangCommander{}},
 		},
@@ -99,7 +99,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	for _, crate := range crates {
-		if crate.ChannelID != m.ChannelID {
+		if crate.ChannelID != m.ChannelID && crate.ChannelID != "*" {
 			continue
 		}
 
