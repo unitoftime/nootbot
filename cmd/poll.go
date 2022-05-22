@@ -17,7 +17,7 @@ func (c PollCommander) Handle(s ApiNooter, m Message) {
 
 	// parse message
 	split := strings.Split(m.Parsed.Postfix, "|| ")
-	emojis := strings.Split(split[1], "")
+	emojis := strings.Split(split[1], " ")
 
 	// delete author message
 	n.NootDeleteMessage(m.Id)
@@ -28,7 +28,11 @@ func (c PollCommander) Handle(s ApiNooter, m Message) {
 
 	// add emojis
 	for _, emoji := range emojis {
-		n.NootReact(msg.ID, emoji)
+		e := strings.ReplaceAll(emoji, " ", "")
+		e = strings.ReplaceAll(e, "<:", "")
+		e = strings.ReplaceAll(e, ">", "")
+
+		n.NootReact(msg.ID, e)
 		time.Sleep(5 * time.Millisecond)
 	}
 
