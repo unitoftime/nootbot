@@ -1,63 +1,66 @@
 package cmd
 
-// import (
-// 	"encoding/json"
-// 	"errors"
-// 	"io/ioutil"
-// 	"net/http"
-// 	"time"
-// )
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"net/http"
+	"time"
 
-// type DogHttp struct {
-// 	Message string
-// 	status  string
-// }
+	"github.com/bwmarrin/discordgo"
+)
 
-// type DogoCommander struct{}
+type DogHttp struct {
+	Message string
+	status  string
+}
 
-// func (c DogoCommander) Handle(s ApiNooter, m *Message) {
-// 	n, ok := s.(api.DiscordChannelNooter)
-// 	if !ok { return } // Only works on discord
+type DogoCommander struct{}
 
-// 	image := &DogHttp{}
-// 	GetJson("https://dog.ceo/api/breeds/image/random", image)
+func (c DogoCommander) Handle(s ApiNooter, m Message) {
+	n, ok := s.(*DiscordNooter)
+	if !ok { return } // Only works on discord
 
-// 	body, _ := ReadFile(image.Message)
-// 	imageSend := bytes.NewReader(body)
-// 	fileSend := &discordgo.File{Name: "image.png", ContentType: "image/png", Reader: imageSend}
+	image := &DogHttp{}
+	GetJson("https://dog.ceo/api/breeds/image/random", image)
 
-// 	response := discordgo.MessageSend{Content: "Random Dogo", Files: []*discordgo.File{fileSend}}
+	body, _ := ReadFile(image.Message)
+	imageSend := bytes.NewReader(body)
+	fileSend := &discordgo.File{Name: "image.png", ContentType: "image/png", Reader: imageSend}
 
-// 	n.NootComplexMessage(m.ChannelID, &response)
-// }
+	response := discordgo.MessageSend{Content: "Random Dogo", Files: []*discordgo.File{fileSend}}
 
-// func GetJson(url string, target interface{}) error {
-// 	var myClient = &http.Client{Timeout: 10 * time.Second}
-// 	r, err := myClient.Get(url)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer r.Body.Close()
+	n.NootComplexMessage(&response)
+}
 
-// 	return json.NewDecoder(r.Body).Decode(target)
-// }
+func GetJson(url string, target interface{}) error {
+	var myClient = &http.Client{Timeout: 10 * time.Second}
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
 
-// func ReadFile(URL string) ([]byte, error) {
-// 	//Get the response bytes from the url
-// 	resp, err := http.Get(URL)
-// 	if err != nil {
-// 		return []byte{}, err
-// 	}
-// 	defer resp.Body.Close()
+	return json.NewDecoder(r.Body).Decode(target)
+}
 
-// 	if resp.StatusCode != 200 {
-// 		return []byte{}, errors.New("Received non 200 response code")
-// 	}
+func ReadFile(URL string) ([]byte, error) {
+	//Get the response bytes from the url
+	resp, err := http.Get(URL)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer resp.Body.Close()
 
-// 	body, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {
-// 		return []byte{}, errors.New("Read all failed")
-// 	}
+	if resp.StatusCode != 200 {
+		return []byte{}, errors.New("Received non 200 response code")
+	}
 
-// 	return body, nil
-// }
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, errors.New("Read all failed")
+	}
+
+	return body, nil
+}

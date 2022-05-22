@@ -1,9 +1,32 @@
 package cmd
 
+import (
+	"github.com/bwmarrin/discordgo"
+)
+
+// This is the general nooter interface. If you want your command to work with all platforms, Noot this way
 type ApiNooter interface {
 	NootMessage(msg string)
-	// TODO would be good to abstract this away. Right now if you want to send a complex discord message, you should do a type-check in your commander to see if it's a DiscordChannelNooter and then send a complex message that way
-	// NootComplexMessage(msg *discordgo.MessageSend)
+}
+
+// This is a discord specific nooter. If you want to use special discord features, Noot this way
+type DiscordNooter struct {
+	channel string
+	session *discordgo.Session
+}
+func NewDiscordNooter(channel string, session *discordgo.Session) *DiscordNooter {
+	return &DiscordNooter{
+		channel: channel,
+		session: session,
+	}
+}
+
+func (d *DiscordNooter) NootMessage(msg string) {
+	d.session.ChannelMessageSend(d.channel, msg)
+}
+
+func (d *DiscordNooter) NootComplexMessage(complexMessage *discordgo.MessageSend) {
+	d.session.ChannelMessageSendComplex(d.channel, complexMessage)
 }
 
 type User struct {

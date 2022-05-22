@@ -70,24 +70,8 @@ func (d *Discord) handleMessages(s *discordgo.Session, m *discordgo.MessageCreat
 				},
 			}
 
-			nooter := &DiscordChannelNooter{
-				channel: m.ChannelID,
-				session: d.session,
-			}
+			nooter := cmd.NewDiscordNooter(m.ChannelID, d.session)
 			command.Handler.Handle(nooter, message)
 		}
 	}()
-}
-
-type DiscordChannelNooter struct {
-	channel string
-	session *discordgo.Session
-}
-
-func (d *DiscordChannelNooter) NootMessage(msg string) {
-	d.session.ChannelMessageSend(d.channel, msg)
-}
-
-func (d *DiscordChannelNooter) NootComplexMessage(complexMessage *discordgo.MessageSend) {
-	d.session.ChannelMessageSendComplex(d.channel, complexMessage)
 }

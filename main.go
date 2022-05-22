@@ -35,10 +35,10 @@ func main() {
 			Name:    "!noot",
 			Handler: cmd.NootCommander{},
 		},
-		// cmd.Command{
-		// 	Name:    "!dogo",
-		// 	Handler: cmd.DogoCommander{},
-		// },
+		cmd.Command{
+			Name:    "!dogo",
+			Handler: cmd.DogoCommander{},
+		},
 		// cmd.Command{
 		// 	Name:    "!random",
 		// 	Handler: cmd.RandomCommander{},
