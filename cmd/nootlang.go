@@ -37,7 +37,7 @@ func (c NootlangCommander) Handle(n ApiNooter, msg Message) {
 
 	exitCode := <-eop
 	time.Sleep(2 * time.Millisecond)
-	fmt.Printf("Noot program exited with exit code %s\n", exitCode)
+	fmt.Printf("Noot program exited with exit code %d\n", exitCode)
 }
 
 func outHandler(n ApiNooter, out chan string) {

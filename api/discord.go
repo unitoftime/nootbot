@@ -10,7 +10,7 @@ import (
 )
 
 type Discord struct {
-	session *discordgo.Session
+	session  *discordgo.Session
 	commands []cmd.Command
 }
 
@@ -23,7 +23,7 @@ func NewDiscord(token string, commands []cmd.Command) *Discord {
 	session.Identify.Intents = discordgo.IntentsGuildMessages
 
 	discord := &Discord{
-		session: session,
+		session:  session,
 		commands: commands,
 	}
 	return discord
@@ -59,6 +59,7 @@ func (d *Discord) handleMessages(s *discordgo.Session, m *discordgo.MessageCreat
 			}
 
 			message := cmd.Message{
+				Id: m.ID,
 				Author: cmd.User{
 					Id:   m.Author.ID,
 					Name: m.Author.Username,
