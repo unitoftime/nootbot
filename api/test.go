@@ -23,7 +23,7 @@ func (t *Test) NootMessage(message string) {
 
 func (t *Test) Listen() {
 	fmt.Println("Running Test mode!")
-	displayMessage := "!echo hello worldddd"
+	displayMessage := "!info"
 
 	for _, command := range t.commands {
 		prefix, postfix, found := strings.Cut(displayMessage, command.Name)

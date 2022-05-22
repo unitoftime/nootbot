@@ -76,7 +76,7 @@ func NewInfoCommander(commands []Command) *InfoCommander {
 	// content += fmt.Sprintf("📦%s - %s \n", crate.Name, crate.Author)
 	content := "Commands:\n"
 	for _, command := range commands {
-		content += fmt.Sprintf("		%s\n", command.Name)
+		content += fmt.Sprintf("		%s %s\n", command.Name, command.Description)
 	}
 	content += "\n"
 

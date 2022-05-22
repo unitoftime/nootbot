@@ -16,32 +16,39 @@ import (
 func main() {
 	commands := []cmd.Command{
 		cmd.Command{
-			Name:    "!echo",
-			Handler: cmd.EchoCommander{},
+			Name:        "!echo",
+			Description: "[message] - Make NootBot Noot!",
+			Handler:     cmd.EchoCommander{},
 		},
 		cmd.Command{
-			Name:    "!recursion",
-			Handler: cmd.RecursionCommander{},
+			Name:        "!recursion",
+			Description: "[message] - Make NootBot enter a recursive command.",
+			Handler:     cmd.RecursionCommander{},
 		},
 		cmd.Command{
-			Name:    "!eval",
-			Handler: cmd.NootlangCommander{},
+			Name:        "!eval",
+			Description: "[nootlang command] - Evaluate arbitrary nootlang commands.",
+			Handler:     cmd.NootlangCommander{},
 		},
 		cmd.Command{
-			Name:    "!java",
-			Handler: cmd.JavaCommander{},
+			Name:        "!java",
+			Description: "[None] - Need inspiration for your next Java class?",
+			Handler:     cmd.JavaCommander{},
 		},
 		cmd.Command{
-			Name:    "!noot",
-			Handler: cmd.NootCommander{},
+			Name:        "!noot",
+			Description: "[None] - Feeling sad? NootBot has a way to make you happy!",
+			Handler:     cmd.NootCommander{},
 		},
 		cmd.Command{
-			Name:    "!dogo",
-			Handler: cmd.DogoCommander{},
+			Name:        "!dogo",
+			Description: "[None] - Dog pics delivered directly to your mailbox.",
+			Handler:     cmd.DogoCommander{},
 		},
 		cmd.Command{
-			Name:    "!poll",
-			Handler: cmd.PollCommander{},
+			Name:        "!poll",
+			Description: "[question] || [emojisArray] - You have questions, NootBot has answers!",
+			Handler:     cmd.PollCommander{},
 		},
 		// cmd.Command{
 		// 	Name:    "!random",
