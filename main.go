@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strings"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/unitoftime/nootbot/api"
@@ -39,6 +39,10 @@ func main() {
 			Name:    "!dogo",
 			Handler: cmd.DogoCommander{},
 		},
+		cmd.Command{
+			Name:    "!poll",
+			Handler: cmd.PollCommander{},
+		},
 		// cmd.Command{
 		// 	Name:    "!random",
 		// 	Handler: cmd.RandomCommander{},
@@ -47,11 +51,11 @@ func main() {
 
 	infoHandler := cmd.NewInfoCommander(commands)
 	infoCmd := cmd.Command{
-		Name: "!commands",
+		Name:    "!commands",
 		Handler: infoHandler,
 	}
 	infoCmd2 := cmd.Command{
-		Name: "!info",
+		Name:    "!info",
 		Handler: infoHandler,
 	}
 	commands = append(commands, infoCmd)
@@ -63,9 +67,9 @@ func main() {
 
 	if os.Args[1] == "discord" {
 		token, err := ioutil.ReadFile("discord.token")
-    if err != nil {
+		if err != nil {
 			panic(err)
-    }
+		}
 		discord := api.NewDiscord(strings.TrimSuffix(string(token), "\n"), commands)
 		discord.Listen()
 	} else if os.Args[1] != "test" {

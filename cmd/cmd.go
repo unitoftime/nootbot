@@ -14,6 +14,7 @@ type DiscordNooter struct {
 	channel string
 	session *discordgo.Session
 }
+
 func NewDiscordNooter(channel string, session *discordgo.Session) *DiscordNooter {
 	return &DiscordNooter{
 		channel: channel,
@@ -25,8 +26,17 @@ func (d *DiscordNooter) NootMessage(msg string) {
 	d.session.ChannelMessageSend(d.channel, msg)
 }
 
-func (d *DiscordNooter) NootComplexMessage(complexMessage *discordgo.MessageSend) {
-	d.session.ChannelMessageSendComplex(d.channel, complexMessage)
+func (d *DiscordNooter) NootComplexMessage(complexMessage *discordgo.MessageSend) *discordgo.Message {
+	m, _ := d.session.ChannelMessageSendComplex(d.channel, complexMessage)
+	return m
+}
+
+func (d *DiscordNooter) NootDeleteMessage(msgId string) {
+	d.session.ChannelMessageDelete(d.channel, msgId)
+}
+
+func (d *DiscordNooter) NootReact(msgId string, reaction string) {
+	d.session.MessageReactionAdd(d.channel, msgId, reaction)
 }
 
 type User struct {
@@ -41,6 +51,7 @@ type ParsedMessage struct {
 }
 
 type Message struct {
+	Id     string        // Message id
 	Author User          // This is the person who sent the Message
 	Parsed ParsedMessage // This is the parsed message
 }
