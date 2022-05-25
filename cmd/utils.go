@@ -20,6 +20,9 @@ func GetJson(url string, target interface{}) error {
 	}
 	defer r.Body.Close()
 
+	// b, _ := io.ReadAll(r.Body)
+	// fmt.Println(string(b))
+
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
@@ -39,6 +42,8 @@ func ReadFile(URL string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, errors.New("Read all failed")
 	}
+
+	//fmt.Println(string(body))
 
 	return body, nil
 }
