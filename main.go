@@ -41,14 +41,14 @@ func main() {
 			Handler:     cmd.NootCommander{},
 		},
 		cmd.Command{
-			Name:        "!dogo",
-			Description: "[None] - Dog pics delivered directly to your mailbox.",
-			Handler:     cmd.DogoCommander{},
-		},
-		cmd.Command{
 			Name:        "!poll",
 			Description: "[question] || [emojisArray] - You have questions, NootBot has answers!",
 			Handler:     cmd.PollCommander{},
+		},
+		cmd.Command{
+			Name:        "!random",
+			Description: "[dog or cat] - Wanna see cute cat or dog image here it is!",
+			Handler:     cmd.RandomCommander{},
 		},
 		// cmd.Command{
 		// 	Name:    "!random",
