@@ -33,7 +33,14 @@ func (c RecursionCommander) Handle(n ApiNooter, msg Message) {
 type NootCommander struct{}
 
 func (c NootCommander) Handle(s ApiNooter, m Message) {
-	s.NootMessage(fmt.Sprintf("Noot Noot! <@%s>", m.Author.Id))
+	content := fmt.Sprintf("Noot Noot! <@%s>", m.Author.Id)
+	_, ok := s.(*DiscordNooter)
+	if !ok {
+		// if on yt print name instead of id
+		content = fmt.Sprintf("Noot Noot! <@%s>", m.Author.Name)
+	}
+
+	s.NootMessage(content)
 }
 
 // type RandomCommander struct{}
