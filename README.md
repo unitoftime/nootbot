@@ -7,6 +7,7 @@ TODO
 ## Credits
 [nootlang](https://github.com/Jomy10/nootlang) - Jomy's Nootlang interpreter<br>
 Discord Integration - [Dracula](https://github.com/Dracula707)<br>
+Weather Report Command - [MD](https://github.com/MD-2016)<br>
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
