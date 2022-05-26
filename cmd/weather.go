@@ -87,7 +87,6 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 			//city and country is entered
 			url = url + "&lang=" + strings.Trim(args[1], " ")
 			GetJson(url, &res)
-			fmt.Printf("%s\n", url)
 			emoji = weatherEmojiFinder(res.Weather[0].Main)
 			n.NootMessage(fmt.Sprintf("%s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 
@@ -97,11 +96,11 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 			GetJson(url, &res)
 			emoji = weatherEmojiFinder(res.Weather[0].Main)
 			if strings.Trim(args[2], " ") == "imperial" {
-				n.NootMessage(fmt.Sprintf("weather: %s %.2f℉ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
+				n.NootMessage(fmt.Sprintf("%s %.2f℉ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 			} else if strings.Trim(args[2], " ") == "metric" {
-				n.NootMessage(fmt.Sprintf("weather: %s %.2f℃ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
+				n.NootMessage(fmt.Sprintf("%s %.2f℃ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 			} else {
-				n.NootMessage(fmt.Sprintf("weather: %s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
+				n.NootMessage(fmt.Sprintf("%s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 			}
 
 		default:
