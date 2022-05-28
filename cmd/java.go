@@ -11,10 +11,11 @@ import (
 type JavaCommander struct{}
 
 func (jc JavaCommander) Handle(n ApiNooter, msg Message) {
-	n.NootMessage(genJava())
+	_, isDiscord := n.(*DiscordNooter)
+	n.NootMessage(genJava(isDiscord))
 }
 
-func genJava() string {
+func genJava(isDiscord bool) string {
 	inWords := []string{
 		"Http", "Attribute", "Order", "Https", "Composite", "Invalid",
 		"Supported", "Abstract", "Common", "Concrete", "Autowire", "Simple",
@@ -59,5 +60,10 @@ func genJava() string {
 
 	className := strings.Join(append([]string{in}, out...), "")
 	varName := strings.Join(append([]string{strings.ToLower(in)}, out...), "")
-	return fmt.Sprintf("%s %s = new %s();", className, varName, className)
+	javaStr := fmt.Sprintf("%s %s = new %s();", className, varName, className)
+	if isDiscord {
+		return fmt.Sprintf("```java\n%s\n```", javaStr)
+	} else {
+		return javaStr
+	}
 }
