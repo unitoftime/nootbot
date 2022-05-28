@@ -10,12 +10,12 @@ import (
 type Test struct {
 	commands []cmd.Command
 }
+
 func NewTest(commands []cmd.Command) *Test {
 	return &Test{
 		commands: commands,
 	}
 }
-
 
 func (t *Test) NootMessage(message string) {
 	fmt.Println("Sending Message: ", message)
