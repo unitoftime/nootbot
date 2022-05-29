@@ -36,8 +36,18 @@ type WeatherHTTP struct {
 }
 
 //mapped to the cmd command !weather
-type WeatherCommander struct{}
-
+type WeatherCommander struct{
+	token string
+}
+func NewWeatherCommander(tokenFile string) WeatherCommander {
+	token, err := ioutil.ReadFile(tokenFile)
+	if err != nil {
+		log.Println("Failed to load weather API Token:", err)
+	}
+	return WeatherCommander{
+		token: strings.TrimSuffix(string(token), "\n"),
+	}
+}
 /*
 	Main functionality of the command which handles
 	getting the weather, parsing the json response,
@@ -51,13 +61,7 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 		return
 	}
 
-	info, err := ioutil.ReadFile("key.txt")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	key := string(info)
+	key := c.token
 
 	//url is for forming the proper api call
 	url := ""

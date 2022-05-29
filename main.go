@@ -48,7 +48,7 @@ func main() {
 		cmd.Command{
 			Name:        "!weather",
 			Description: "[city] | [country code] | [units] - if there are same city names but in different countries, then add a \",\"  after city name in [city] then followed by the country initials for the correct city",
-			Handler:     cmd.WeatherCommander{},
+			Handler:     cmd.NewWeatherCommander("weatherApi.token"),
     },
 		cmd.Command{
 			Name:        "!random",
