@@ -51,6 +51,7 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 		return
 	}
 
+	//be sure to create a file called this with key in it.
 	info, err := ioutil.ReadFile("key.txt")
 
 	if err != nil {
