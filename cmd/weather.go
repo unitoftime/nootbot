@@ -97,10 +97,11 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 			n.NootMessage(fmt.Sprintf("%s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 
 		case 3:
-			//city, country, and units is entered
+			//city, country, and units is entered.
 			url = url + "&lang=" + strings.Trim(args[1], " ") + "&units=" + strings.Trim(args[2], " ")
 			GetJson(url, &res)
 			emoji = weatherEmojiFinder(res.Weather[0].Main)
+			//prints out the decision based on imperial for fahrenheit, metric for celsius, and standard for kelvin.
 			if strings.Trim(args[2], " ") == "imperial" {
 				n.NootMessage(fmt.Sprintf("%s %.2f℉ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 			} else if strings.Trim(args[2], " ") == "metric" {
