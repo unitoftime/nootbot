@@ -36,9 +36,10 @@ type WeatherHTTP struct {
 }
 
 //mapped to the cmd command !weather
-type WeatherCommander struct{
+type WeatherCommander struct {
 	token string
 }
+
 func NewWeatherCommander(tokenFile string) WeatherCommander {
 	token, err := ioutil.ReadFile(tokenFile)
 	if err != nil {
@@ -48,6 +49,7 @@ func NewWeatherCommander(tokenFile string) WeatherCommander {
 		token: strings.TrimSuffix(string(token), "\n"),
 	}
 }
+
 /*
 	Main functionality of the command which handles
 	getting the weather, parsing the json response,
@@ -101,11 +103,11 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 			GetJson(url, &res)
 			emoji = weatherEmojiFinder(res.Weather[0].Main)
 			if strings.Trim(args[2], " ") == "imperial" {
-				n.NootMessage(fmt.Sprintf("weather: %s %.2f℉ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
+				n.NootMessage(fmt.Sprintf("%s %.2f℉ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 			} else if strings.Trim(args[2], " ") == "metric" {
-				n.NootMessage(fmt.Sprintf("weather: %s %.2f℃ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
+				n.NootMessage(fmt.Sprintf("%s %.2f℃ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 			} else {
-				n.NootMessage(fmt.Sprintf("weather: %s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
+				n.NootMessage(fmt.Sprintf("%s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 			}
 
 		default:
