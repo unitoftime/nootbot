@@ -59,7 +59,7 @@ func (c NotificationCommander) Handle(s ApiNooter, m Message) {
 			// Currently only unicode emojis work using this call
 			users, err := d.session.MessageReactions(c.NotificationChannelId, notification.ID, c.NotificationEmoji, 100, "", "")
 			if err != nil {
-				panic("cannot find message reactions")
+				log.Println("Could not find reaction to message")
 			}
 			for j := range users {
 				user := users[j].ID
