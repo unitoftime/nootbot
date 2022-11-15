@@ -59,7 +59,7 @@ func main() {
 			Name:        "!notify",
 			Description: "[notification] - This command can only be used by the one and only.",
 			// For now only non custom emojis are supported
-			Handler: cmd.NewNotificationCommander("287954569844097024", "1041794511929618462", "✅"),
+			Handler: cmd.NewNotificationCommander("notify.conf"),
 		},
 		// cmd.Command{
 		// 	Name:    "!random",
