@@ -67,7 +67,8 @@ func (c NotificationCommander) Handle(s ApiNooter, m Message) {
 					subscribers[user] = true
 				}
 			}
-			s.NootMessage(formatNootMessage(postfix, subscribers))
+			_, msgText, _ := strings.Cut(strings.Trim(m.Parsed.Postfix, " "), " ")
+			s.NootMessage(formatNootMessage(fmt.Sprintf("[%s] %s", notificationType, msgText), subscribers))
 			return
 		}
 	}

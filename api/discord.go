@@ -78,6 +78,10 @@ func (d *Discord) handleMessages(s *discordgo.Session, m *discordgo.MessageCreat
 	}()
 }
 func (d *Discord) handleMessageUpdates(s *discordgo.Session, m *discordgo.MessageUpdate) {
+	// Ignore if the session or the message are nil
+	if s == nil || m == nil || m.Author == nil || s.State == nil || s.State.User == nil {
+		return
+	}
 	// Ignore all messages edited by the bot itself
 	if m.Author.ID == s.State.User.ID {
 		return
