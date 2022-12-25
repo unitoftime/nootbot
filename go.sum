@@ -54,6 +54,8 @@ github.com/jomy10/nootlang v0.0.0-20221225124541-cd07fd96185f h1:mroNKSSeseGlz++
 github.com/jomy10/nootlang v0.0.0-20221225124541-cd07fd96185f/go.mod h1:0YbPI/HzBR71iIPOpoUbfJb7Ciy7Z+oiBEL/7cUpWbg=
 github.com/jomy10/nootlang v0.0.0-20221225132303-d712fb31798f h1:ARZ1b1sESWYLyEL6Z+ZjHCiyEibTedZuwo9BN0ynBtk=
 github.com/jomy10/nootlang v0.0.0-20221225132303-d712fb31798f/go.mod h1:0YbPI/HzBR71iIPOpoUbfJb7Ciy7Z+oiBEL/7cUpWbg=
+github.com/jomy10/nootlang v0.0.0-20221225142628-5f3536532227 h1:UkoUzk4qeHki6AaVN6IRL170ESszMvz3nxhvuA6Qn8M=
+github.com/jomy10/nootlang v0.0.0-20221225142628-5f3536532227/go.mod h1:0YbPI/HzBR71iIPOpoUbfJb7Ciy7Z+oiBEL/7cUpWbg=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

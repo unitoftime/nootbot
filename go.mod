@@ -17,7 +17,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/jomy10/nootlang v0.0.0-20221225132303-d712fb31798f // indirect
+	github.com/jomy10/nootlang v0.0.0-20221225142628-5f3536532227 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/sys v0.1.0 // indirect
