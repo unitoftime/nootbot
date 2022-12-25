@@ -18,12 +18,12 @@ func NewTest(commands []cmd.Command) *Test {
 }
 
 func (t *Test) NootMessage(message string) {
-	fmt.Println("Sending Message: ", message)
+	fmt.Println("Sending Message:", message)
 }
 
 func (t *Test) Listen() {
 	fmt.Println("Running Test mode!")
-	displayMessage := "!info"
+	displayMessage := `!info`
 
 	for _, command := range t.commands {
 		prefix, postfix, found := strings.Cut(displayMessage, command.Name)
