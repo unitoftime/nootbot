@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"fmt"
-	// "time"
+	"time"
 
 	"github.com/jomy10/nootlang/interpreter"
 	"github.com/jomy10/nootlang/parser"
@@ -30,10 +31,22 @@ func (c NootlangCommander) Handle(n ApiNooter, msg Message) {
 	stderr := new(bytes.Buffer)
 	stdin := new(bytes.Reader)
 
-	if err := interpreter.Interpret(nodes, stdout, stderr, stdin); err != nil {
-		n.NootMessage(fmt.Sprintf("[Runtime error] %s", err.Error()))
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	// TODO: "realtime" output in discord + stderr
-	n.NootMessage(stdout.String())
+	go func(ctx context.Context) {
+		if err := interpreter.Interpret(nodes, stdout, stderr, stdin); err != nil {
+			n.NootMessage(fmt.Sprintf("[Runtime error] %s", err.Error()))
+		}
+
+		// TODO: "realtime" output in discord + stderr
+		n.NootMessage(stdout.String())
+	}(ctx)
+
+	// Wait for execution or timeout
+	<-ctx.Done()
+
+	if ctx.Err() != nil {
+		n.NootMessage(ctx.Err().Error())
+	}
 }
