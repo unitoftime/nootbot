@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"time"
 
@@ -16,30 +18,35 @@ func (c NootlangCommander) Handle(n ApiNooter, msg Message) {
 	tokens, err := parser.Tokenize(str)
 	if err != nil {
 		n.NootMessage(fmt.Sprintf("Error while tokenizing source code: %s", err))
+		return
 	}
 
 	nodes, err := parser.Parse(tokens)
 	if err != nil {
 		n.NootMessage(fmt.Sprintf("Error while parsing source code: %s", err))
+		return
 	}
 
-	stdout := make(chan string)
-	stderr := make(chan string)
-	eop := make(chan int, 1)
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+	stdin := new(bytes.Reader)
 
-	defer close(stdout)
-	defer close(stderr)
-	defer close(eop)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	go interpreter.Interpret(nodes, stdout, stderr, eop)
-	go outHandler(n, stdout)
-	go outHandler(n, stderr)
+	go func(ctx context.Context) {
+		if err := interpreter.Interpret(nodes, stdout, stderr, stdin); err != nil {
+			n.NootMessage(fmt.Sprintf("[Runtime error] %s", err.Error()))
+		}
 
-	exitCode := <-eop
-	time.Sleep(2 * time.Millisecond)
-	fmt.Printf("Noot program exited with exit code %d\n", exitCode)
-}
+		// TODO: "realtime" output in discord + stderr
+		n.NootMessage(stdout.String())
+	}(ctx)
 
-func outHandler(n ApiNooter, out chan string) {
-	n.NootMessage(<-out)
+	// Wait for execution or timeout
+	<-ctx.Done()
+
+	if ctx.Err() != nil {
+		n.NootMessage(ctx.Err().Error())
+	}
 }
