@@ -9,6 +9,18 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+type PossibleArgs []string
+
+func (list PossibleArgs) Has(a string) bool {
+    for _, b := range list {
+        if b == a {
+            return true
+        }
+    }
+    return false
+}
+
+
 type CatHttp struct {
 	Url string `json:"url"`
 	Id  string `json:"id"`
@@ -29,11 +41,11 @@ func (c RandomCommander) Handle(s ApiNooter, m Message) {
 
 	response := discordgo.MessageSend{Content: "Random Cat"}
 	arg := strings.ReplaceAll(m.Parsed.Postfix, " ", "")
+	choose := PossibleArgs{"dog", "cat", "girl"}
 	url := ""
 	title := ""
 
-	if arg == "" {
-		choose := []string{"dog", "cat"}
+	if !choose.Has(arg) {
 		n := rand.Int() % len(choose)
 		arg = choose[n]
 	}
@@ -52,7 +64,15 @@ func (c RandomCommander) Handle(s ApiNooter, m Message) {
 
 		url = (*image)[0].Url
 		title = "Random Cat"
+
+	case "girl":
+		image := &CatHttp{}
+		GetJson("https://api.waifu.pics/sfw/waifu", image)
+
+		url = (*image).Url
+		title = "Random Girl"
 	}
+
 
 	body, _ := ReadFile(url)
 	imageSend := bytes.NewReader(body)
