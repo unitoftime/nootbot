@@ -57,9 +57,9 @@ type Message struct {
 }
 
 type Command struct {
-	Name    string // The command string to search for
+	Name        string // The command string to search for
 	Description string // The command's description and usage
-	Handler Commander
+	Handler     Commander
 }
 
 type Commander interface {

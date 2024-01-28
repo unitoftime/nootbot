@@ -1,3 +1,9 @@
 token.json
 discord.token
 weatherApi.token
+
+# Jetbrains IDEs generate these
+.idea
+
+# MacOS
+.DS_Store

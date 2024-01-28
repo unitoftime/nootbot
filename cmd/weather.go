@@ -12,30 +12,31 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/unitoftime/nootbot/pkg/httputils"
 	"io/ioutil"
 	"log"
 	"strings"
 )
 
-//used to read in the temperature value inside the
-//main json response from weather
+// used to read in the temperature value inside the
+// main json response from weather
 type wMain struct {
 	Temp float32 `json:"temp"`
 }
 
-//reads in the main and description from the weather api json response
+// reads in the main and description from the weather api json response
 type wWeather struct {
 	Main        string `json:"main"`
 	Description string `json:"description"`
 }
 
-//the main struct to handle all of the json response from weather api
+// the main struct to handle all of the json response from weather api
 type WeatherHTTP struct {
 	Weather []wWeather `json:"weather"`
 	Main    wMain      `json:"main"`
 }
 
-//mapped to the cmd command !weather
+// mapped to the cmd command !weather
 type WeatherCommander struct {
 	token string
 }
@@ -51,10 +52,10 @@ func NewWeatherCommander(tokenFile string) WeatherCommander {
 }
 
 /*
-	Main functionality of the command which handles
-	getting the weather, parsing the json response,
-	then outputting the proper weather report with
-	the apporiate units and associated weather emoji
+Main functionality of the command which handles
+getting the weather, parsing the json response,
+then outputting the proper weather report with
+the apporiate units and associated weather emoji
 */
 func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 	//checks for a nil discord command and only working for discord
@@ -86,13 +87,13 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 		switch len(args) {
 		case 1:
 			//city is entered
-			GetJson(url, &res)
+			httputils.GetJson(url, &res)
 			emoji = weatherEmojiFinder(res.Weather[0].Main)
 			n.NootMessage(fmt.Sprintf("%s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
 		case 2:
 			//city and country is entered
 			url = url + "&lang=" + strings.Trim(args[1], " ")
-			GetJson(url, &res)
+			httputils.GetJson(url, &res)
 			fmt.Printf("%s\n", url)
 			emoji = weatherEmojiFinder(res.Weather[0].Main)
 			n.NootMessage(fmt.Sprintf("%s %.2f°K - %s", emoji, res.Main.Temp, res.Weather[0].Description))
@@ -100,7 +101,7 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 		case 3:
 			//city, country, and units is entered
 			url = url + "&lang=" + strings.Trim(args[1], " ") + "&units=" + strings.Trim(args[2], " ")
-			GetJson(url, &res)
+			httputils.GetJson(url, &res)
 			emoji = weatherEmojiFinder(res.Weather[0].Main)
 			if strings.Trim(args[2], " ") == "imperial" {
 				n.NootMessage(fmt.Sprintf("%s %.2f℉ - %s", emoji, res.Main.Temp, res.Weather[0].Description))
@@ -120,7 +121,7 @@ func (c WeatherCommander) Handle(s ApiNooter, m Message) {
 	}
 }
 
-//simple map function that matches the weather api json:main value to the apporiate weather emoji
+// simple map function that matches the weather api json:main value to the apporiate weather emoji
 func weatherEmojiFinder(weatherType string) string {
 
 	//creates map for weather emojis
