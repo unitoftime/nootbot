@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"github.com/unitoftime/nootbot/pkg/httputils"
 	"math/rand"
 	"strings"
 
@@ -12,14 +13,13 @@ import (
 type PossibleArgs []string
 
 func (list PossibleArgs) Has(a string) bool {
-    for _, b := range list {
-        if b == a {
-            return true
-        }
-    }
-    return false
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
-
 
 type CatHttp struct {
 	Url string `json:"url"`
@@ -53,28 +53,27 @@ func (c RandomCommander) Handle(s ApiNooter, m Message) {
 	switch arg {
 	case "dog":
 		image := &DogHttp{}
-		GetJson("https://dog.ceo/api/breeds/image/random", image)
+		httputils.GetJson("https://dog.ceo/api/breeds/image/random", image)
 
 		url = image.Message
 		title = "Random Dog"
 
 	case "cat":
 		image := &[]CatHttp{}
-		GetJson("https://api.thecatapi.com/v1/images/search", image)
+		httputils.GetJson("https://api.thecatapi.com/v1/images/search", image)
 
 		url = (*image)[0].Url
 		title = "Random Cat"
 
 	case "girl":
 		image := &CatHttp{}
-		GetJson("https://api.waifu.pics/sfw/waifu", image)
+		httputils.GetJson("https://api.waifu.pics/sfw/waifu", image)
 
 		url = (*image).Url
 		title = "Random Girl"
 	}
 
-
-	body, _ := ReadFile(url)
+	body, _ := httputils.ReadFile(url)
 	imageSend := bytes.NewReader(body)
 	imageType := strings.Split(url, ".")
 

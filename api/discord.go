@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/unitoftime/nootbot/pkg/live"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -12,6 +13,8 @@ import (
 type Discord struct {
 	session  *discordgo.Session
 	commands []cmd.Command
+
+	liveBanners *live.BannerSystem
 }
 
 func NewDiscord(token string, commands []cmd.Command) *Discord {
@@ -20,11 +23,12 @@ func NewDiscord(token string, commands []cmd.Command) *Discord {
 		panic(err)
 	}
 
-	session.Identify.Intents = discordgo.IntentsGuildMessages
+	session.Identify.Intents = discordgo.IntentsGuildMessages // Couldn't figure out which intent is responsible for manage channels
 
 	discord := &Discord{
-		session:  session,
-		commands: commands,
+		liveBanners: live.NewBannerSystem(session, live.LiveBanners, 5),
+		session:     session,
+		commands:    commands,
 	}
 	return discord
 }
@@ -37,6 +41,9 @@ func (d *Discord) Listen() {
 
 	d.session.AddHandler(d.handleMessages)
 	d.session.AddHandler(d.handleMessageUpdates)
+
+	// goroutine because the scheduler will block once started
+	go d.liveBanners.Listen()
 }
 
 // Handles MessageCreate events

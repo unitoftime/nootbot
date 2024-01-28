@@ -39,6 +39,10 @@ func (d *DiscordNooter) NootReact(msgId string, reaction string) {
 	d.session.MessageReactionAdd(d.channel, msgId, reaction)
 }
 
+func (d *DiscordNooter) NootUpdateChannelName(channelId string, newName string) {
+	d.session.ChannelEdit(channelId, newName)
+}
+
 type User struct {
 	Id   string // This is the channel id. I think this can't change?
 	Name string // This is the users current display name. I think this can change
@@ -57,9 +61,9 @@ type Message struct {
 }
 
 type Command struct {
-	Name    string // The command string to search for
+	Name        string // The command string to search for
 	Description string // The command's description and usage
-	Handler Commander
+	Handler     Commander
 }
 
 type Commander interface {

@@ -1,4 +1,4 @@
-package cmd
+package httputils
 
 import (
 	"encoding/json"
@@ -9,21 +9,20 @@ import (
 	"time"
 )
 
-// utility functions that used by multiple cmds
+func GetJson(url string, target any) error {
+	client := &http.Client{Timeout: 10 * time.Second}
 
-func GetJson(url string, target interface{}) error {
-	var myClient = &http.Client{Timeout: 10 * time.Second}
-	r, err := myClient.Get(url)
+	response, err := client.Get(url)
 	if err != nil {
-		fmt.Println("error with GetJson")
-		return err
+		return fmt.Errorf("error with GET request: %v", err)
 	}
-	defer r.Body.Close()
+	defer response.Body.Close()
 
-	// b, _ := io.ReadAll(r.Body)
-	// fmt.Println(string(b))
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected response status: %s", response.Status)
+	}
 
-	return json.NewDecoder(r.Body).Decode(target)
+	return json.NewDecoder(response.Body).Decode(target)
 }
 
 func ReadFile(URL string) ([]byte, error) {
@@ -42,8 +41,5 @@ func ReadFile(URL string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, errors.New("Read all failed")
 	}
-
-	//fmt.Println(string(body))
-
 	return body, nil
 }
