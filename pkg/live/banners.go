@@ -84,7 +84,7 @@ func editChannelName(discord *discordgo.Session, channelId string, name string) 
 func (b *BannerSystem) Listen() {
 
 	// Only at most twice every 10 minutes because of discord limits
-	err := gocron.Every(b.refreshTimeMinutes).Seconds().Do(b.updateBanners)
+	err := gocron.Every(b.refreshTimeMinutes).Minutes().Do(b.updateBanners)
 	if err != nil {
 		log.Println(err)
 	}

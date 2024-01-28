@@ -23,7 +23,7 @@ func NewDiscord(token string, commands []cmd.Command) *Discord {
 		panic(err)
 	}
 
-	session.Identify.Intents = discordgo.IntentsGuildMessages // Couldn't figure out which intent is responsible for manage channels
+	session.Identify.Intents = discordgo.IntentsGuildMessages
 
 	discord := &Discord{
 		liveBanners: live.NewBannerSystem(session, live.LiveBanners, 5),
