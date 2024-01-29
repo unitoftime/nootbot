@@ -2,8 +2,10 @@ package api
 
 import (
 	"fmt"
-	"github.com/unitoftime/nootbot/pkg/live"
 	"strings"
+	"time"
+
+	"github.com/unitoftime/nootbot/pkg/live"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -26,7 +28,7 @@ func NewDiscord(token string, commands []cmd.Command) *Discord {
 	session.Identify.Intents = discordgo.IntentsGuildMessages
 
 	discord := &Discord{
-		liveBanners: live.NewBannerSystem(session, live.LiveBanners, 5),
+		liveBanners: live.NewBannerSystem(session, live.LiveBanners, 5 * time.Minute),
 		session:     session,
 		commands:    commands,
 	}

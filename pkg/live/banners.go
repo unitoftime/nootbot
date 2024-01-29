@@ -2,27 +2,27 @@ package live
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/jasonlvhit/gocron"
-	"github.com/unitoftime/nootbot/pkg/httputils"
 	"log"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/unitoftime/nootbot/pkg/httputils"
 )
 
-const GameStatusApiUrl = "https://alpha.mythfall.com/api/status"
+const GameStatusApiUrl = "https://alpha.mythfall.com:7779/api/status"
 
 var LiveBanners = []Banner{
 	{
-		ChannelId: "// TODO: SET CHANNEL ID //",
+		ChannelId: "1201270649365213215",
 		Func: func(b *BannerSystem) string {
 			return fmt.Sprintf("🤺 Players: %d", b.cachedStatus.NumPlayers)
 		},
 	},
 	{
-		ChannelId: "// TODO: SET CHANNEL ID //",
+		ChannelId: "1201270754419953765",
 		Func: func(b *BannerSystem) string {
 			lowestSphere := findSphereWithLowestStability(b.cachedStatus.Spheres)
-			return fmt.Sprintf("🀄 Stability: %d/10000", lowestSphere.Stability)
+			return fmt.Sprintf("🀄 Stability: %d", lowestSphere.Stability)
 		},
 	},
 }
@@ -33,7 +33,7 @@ type GameStatus struct {
 }
 
 type Sphere struct {
-	Stability uint `json:"Stability"`
+	Stability uint64 `json:"Stability"`
 }
 
 type Banner struct {
@@ -42,10 +42,9 @@ type Banner struct {
 }
 
 type BannerSystem struct {
-	scheduler *gocron.Scheduler
 	discord   *discordgo.Session
 
-	refreshTimeMinutes uint64
+	refreshTime time.Duration
 	banners            []Banner
 
 	// Basic cache, so we can reuse instead of dispatching requests per banner
@@ -82,24 +81,19 @@ func editChannelName(discord *discordgo.Session, channelId string, name string) 
 }
 
 func (b *BannerSystem) Listen() {
-
 	// Only at most twice every 10 minutes because of discord limits
-	err := gocron.Every(b.refreshTimeMinutes).Minutes().Do(b.updateBanners)
-	if err != nil {
-		log.Println(err)
-	}
-
 	log.Println("Live banner system listening")
-
-	<-gocron.Start()
+	for {
+		b.updateBanners()
+		time.Sleep(b.refreshTime)
+	}
 }
 
-func NewBannerSystem(session *discordgo.Session, banners []Banner, refreshTimeMinutes uint64) *BannerSystem {
+func NewBannerSystem(session *discordgo.Session, banners []Banner, refreshTime time.Duration) *BannerSystem {
 	return &BannerSystem{
-		scheduler: gocron.NewScheduler(),
 		discord:   session,
 
-		refreshTimeMinutes: refreshTimeMinutes,
+		refreshTime: refreshTime,
 		banners:            banners,
 
 		cachedStatus: nil,
