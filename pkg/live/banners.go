@@ -9,7 +9,7 @@ import (
 	"github.com/unitoftime/nootbot/pkg/httputils"
 )
 
-const GameStatusApiUrl = "https://alpha.mythfall.com:7779/api/status"
+const GameStatusApiUrl = "https://api.mythfall.com/status"
 
 var LiveBanners = []Banner{
 	{
