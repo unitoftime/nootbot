@@ -15,14 +15,14 @@ var LiveBanners = []Banner{
 	{
 		ChannelId: "1201270649365213215",
 		Func: func(b *BannerSystem) string {
-			return fmt.Sprintf("🤺 Players: %d", b.cachedStatus.NumPlayers)
+			return fmt.Sprintf("👤 Players: %d", b.cachedStatus.NumPlayers)
 		},
 	},
 	{
 		ChannelId: "1201270754419953765",
 		Func: func(b *BannerSystem) string {
-			lowestSphere := findSphereWithLowestStability(b.cachedStatus.Spheres)
-			return fmt.Sprintf("🀄 Stability: %d", lowestSphere.Stability)
+			sphere := findSphereWithHighestPhase(b.cachedStatus.Spheres)
+			return fmt.Sprintf("🌕 Phase: %d", sphere.CurrentPhase)
 		},
 	},
 }
@@ -33,7 +33,7 @@ type GameStatus struct {
 }
 
 type Sphere struct {
-	Stability uint64 `json:"Stability"`
+	CurrentPhase uint64 `json:"CurrentPhase"`
 }
 
 type Banner struct {
@@ -101,13 +101,13 @@ func NewBannerSystem(session *discordgo.Session, banners []Banner, refreshTime t
 }
 
 // Messy placement, but we can move it somewhere later
-func findSphereWithLowestStability(spheres []Sphere) Sphere {
-	minSphere := Sphere{Stability: 10_000}
+func findSphereWithHighestPhase(spheres []Sphere) Sphere {
+	maxSphere := Sphere{CurrentPhase: 0}
 
 	for _, sphere := range spheres {
-		if sphere.Stability < minSphere.Stability {
-			minSphere = sphere
+		if sphere.CurrentPhase > maxSphere.CurrentPhase {
+			maxSphere = sphere
 		}
 	}
-	return minSphere
+	return maxSphere
 }
