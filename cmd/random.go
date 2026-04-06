@@ -3,9 +3,10 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/unitoftime/nootbot/pkg/httputils"
 	"math/rand"
 	"strings"
+
+	"github.com/unitoftime/nootbot/pkg/httputils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -41,7 +42,7 @@ func (c RandomCommander) Handle(s ApiNooter, m Message) {
 
 	response := discordgo.MessageSend{Content: "Random Cat"}
 	arg := strings.ReplaceAll(m.Parsed.Postfix, " ", "")
-	choose := PossibleArgs{"dog", "cat", "girl"}
+	choose := PossibleArgs{"dog", "cat"}
 	url := ""
 	title := ""
 
@@ -65,12 +66,12 @@ func (c RandomCommander) Handle(s ApiNooter, m Message) {
 		url = (*image)[0].Url
 		title = "Random Cat"
 
-	case "girl":
-		image := &CatHttp{}
-		httputils.GetJson("https://api.waifu.pics/sfw/waifu", image)
+	// case "girl":
+	// 	image := &CatHttp{}
+	// 	httputils.GetJson("https://api.waifu.pics/sfw/waifu", image)
 
-		url = (*image).Url
-		title = "Random Girl"
+	// 	url = (*image).Url
+	// 	title = "Random Girl"
 	}
 
 	body, _ := httputils.ReadFile(url)
