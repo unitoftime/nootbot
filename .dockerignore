@@ -1,0 +1,15 @@
+# Keep the build context small and avoid copying stale/local files.
+.git
+.github
+.idea
+.DS_Store
+
+# Prebuilt local binary — the image builds its own.
+/nootbot
+
+# Local secret files (also gitignored). Never send them to the build context.
+*.token
+token.json
+discord.token
+weatherApi.token
+secrets.json

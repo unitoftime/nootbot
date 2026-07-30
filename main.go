@@ -6,14 +6,19 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/unitoftime/nootbot/api"
 	"github.com/unitoftime/nootbot/cmd"
+	"github.com/unitoftime/nootbot/pkg/secrets"
 )
 
 func main() {
+	secret, err := secrets.Load()
+	if err != nil {
+		log.Fatalf("Failed to load secrets: %v", err)
+	}
+
 	commands := []cmd.Command{
 		cmd.Command{
 			Name:        "!echo",
@@ -48,7 +53,7 @@ func main() {
 		cmd.Command{
 			Name:        "!weather",
 			Description: "[city] | [country code] | [units] - if there are same city names but in different countries, then add a \",\"  after city name in [city] then followed by the country initials for the correct city",
-			Handler:     cmd.NewWeatherCommander("weatherApi.token"),
+			Handler:     cmd.NewWeatherCommander(secret.WeatherApiToken),
 		},
 		cmd.Command{
 			Name:        "!random",
@@ -84,11 +89,7 @@ func main() {
 	}
 
 	if os.Args[1] == "discord" {
-		token, err := ioutil.ReadFile("discord.token")
-		if err != nil {
-			panic(err)
-		}
-		discord := api.NewDiscord(strings.TrimSuffix(string(token), "\n"), commands)
+		discord := api.NewDiscord(secret.DiscordToken, commands)
 		discord.Listen()
 	} else if os.Args[1] != "test" {
 		livestreamId := os.Args[1]

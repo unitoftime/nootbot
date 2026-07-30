@@ -13,8 +13,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/unitoftime/nootbot/pkg/httputils"
-	"io/ioutil"
-	"log"
 	"strings"
 )
 
@@ -41,13 +39,9 @@ type WeatherCommander struct {
 	token string
 }
 
-func NewWeatherCommander(tokenFile string) WeatherCommander {
-	token, err := ioutil.ReadFile(tokenFile)
-	if err != nil {
-		log.Println("Failed to load weather API Token:", err)
-	}
+func NewWeatherCommander(token string) WeatherCommander {
 	return WeatherCommander{
-		token: strings.TrimSuffix(string(token), "\n"),
+		token: strings.TrimSuffix(token, "\n"),
 	}
 }
 
