@@ -33,7 +33,8 @@ func (c RecursionCommander) Handle(n ApiNooter, msg Message) {
 type NootCommander struct{}
 
 func (c NootCommander) Handle(s ApiNooter, m Message) {
-	content := fmt.Sprintf("Noot Noot! <@%s>", m.Author.Id)
+	// The discord nooter already mentions the author
+	content := "Noot Noot!"
 	_, ok := s.(*DiscordNooter)
 	if !ok {
 		// if on yt print name instead of id

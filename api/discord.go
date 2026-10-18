@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -50,80 +51,58 @@ func (d *Discord) Listen() {
 
 // Handles MessageCreate events
 func (d *Discord) handleMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// Ignore all messages created by the bot itself
-	if m.Author.ID == s.State.User.ID {
+	d.dispatch(s, m.Message, "new")
+}
+
+// Handles MessageUpdate events, so edited messages run commands too
+func (d *Discord) handleMessageUpdates(s *discordgo.Session, m *discordgo.MessageUpdate) {
+	if m == nil {
 		return
 	}
-
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Println("Recovering from panic: ", r)
-			}
-		}()
-
-		for _, command := range d.commands {
-			prefix, postfix, found := strings.Cut(m.Content, command.Name)
-			if !found {
-				continue
-			}
-
-			message := cmd.Message{
-				Id: m.ID,
-				Author: cmd.User{
-					Id:   m.Author.ID,
-					Name: m.Author.Username,
-				},
-				Parsed: cmd.ParsedMessage{
-					Command: command.Name,
-					Prefix:  prefix,
-					Postfix: postfix,
-				},
-			}
-
-			nooter := cmd.NewDiscordNooter(m.ChannelID, d.session)
-			command.Handler.Handle(nooter, message)
-		}
-	}()
+	d.dispatch(s, m.Message, "edited")
 }
-func (d *Discord) handleMessageUpdates(s *discordgo.Session, m *discordgo.MessageUpdate) {
+
+// Runs every command found in the message. kind says whether the message is new or edited.
+func (d *Discord) dispatch(s *discordgo.Session, m *discordgo.Message, kind string) {
 	// Ignore if the session or the message are nil
 	if s == nil || m == nil || m.Author == nil || s.State == nil || s.State.User == nil {
 		return
 	}
-	// Ignore all messages edited by the bot itself
+	// Ignore all messages from the bot itself
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
 
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Println("Recovering from panic: ", r)
-			}
-		}()
-
-		for _, command := range d.commands {
-			prefix, postfix, found := strings.Cut(m.Content, command.Name)
-			if !found {
-				continue
-			}
-
-			message := cmd.Message{
-				Id: m.ID,
-				Author: cmd.User{
-					Id:   m.Author.ID,
-					Name: m.Author.Username,
-				},
-				Parsed: cmd.ParsedMessage{
-					Command: command.Name,
-					Prefix:  prefix,
-					Postfix: postfix,
-				},
-			}
-
-			nooter := cmd.NewDiscordNooter(m.ChannelID, d.session)
-			command.Handler.Handle(nooter, message)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovering from panic: ", r)
 		}
 	}()
+
+	for _, command := range d.commands {
+		prefix, postfix, found := strings.Cut(m.Content, command.Name)
+		if !found {
+			continue
+		}
+
+		// Logged before running, so the request is on record even if the author deletes it
+		log.Printf("%s requested by %s (%s) in channel %s, %s message %s: %q",
+			command.Name, m.Author.Username, m.Author.ID, m.ChannelID, kind, m.ID, m.Content)
+
+		message := cmd.Message{
+			Id: m.ID,
+			Author: cmd.User{
+				Id:   m.Author.ID,
+				Name: m.Author.Username,
+			},
+			Parsed: cmd.ParsedMessage{
+				Command: command.Name,
+				Prefix:  prefix,
+				Postfix: postfix,
+			},
+		}
+
+		nooter := cmd.NewDiscordNooter(m.ChannelID, m.Author.ID, d.session)
+		command.Handler.Handle(nooter, message)
+	}
 }

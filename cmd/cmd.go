@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -11,24 +14,68 @@ type ApiNooter interface {
 
 // This is a discord specific nooter. If you want to use special discord features, Noot this way
 type DiscordNooter struct {
-	channel string
-	session *discordgo.Session
+	channel   string
+	requester string // Id of the user whose message is being answered
+	session   *discordgo.Session
 }
 
-func NewDiscordNooter(channel string, session *discordgo.Session) *DiscordNooter {
+func NewDiscordNooter(channel string, requester string, session *discordgo.Session) *DiscordNooter {
 	return &DiscordNooter{
-		channel: channel,
-		session: session,
+		channel:   channel,
+		requester: requester,
+		session:   session,
 	}
 }
 
 func (d *DiscordNooter) NootMessage(msg string) {
-	d.session.ChannelMessageSend(d.channel, msg)
+	d.NootComplexMessage(&discordgo.MessageSend{Content: msg})
 }
 
+// Every discord message goes out through here, so commands that repeat user text can't be used
+// to post images: link previews are suppressed (attachments, like !random's, still show), only
+// user mentions ping, and the message names who it is answering.
 func (d *DiscordNooter) NootComplexMessage(complexMessage *discordgo.MessageSend) *discordgo.Message {
-	m, _ := d.session.ChannelMessageSendComplex(d.channel, complexMessage)
+	complexMessage.Content = fmt.Sprintf("<@%s> %s", d.requester, complexMessage.Content)
+	complexMessage.AllowedMentions = &discordgo.MessageAllowedMentions{
+		Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
+	}
+
+	m, err := d.send(complexMessage)
+	if err != nil {
+		log.Println("Unable to send message to channel", d.channel, ":", err)
+	}
 	return m
+}
+
+// discordgo v0.25.0 can't set flags on a new message, so this adds them to its MessageSend
+type flaggedMessageSend struct {
+	*discordgo.MessageSend
+	Flags discordgo.MessageFlags `json:"flags,omitempty"`
+}
+
+// Mirrors discordgo's ChannelMessageSendComplex, but sends the message with embeds suppressed
+func (d *DiscordNooter) send(complexMessage *discordgo.MessageSend) (*discordgo.Message, error) {
+	data := flaggedMessageSend{MessageSend: complexMessage, Flags: discordgo.MessageFlagsSuppressEmbeds}
+	endpoint := discordgo.EndpointChannelMessages(d.channel)
+
+	var response []byte
+	var err error
+	if len(complexMessage.Files) > 0 {
+		contentType, body, encodeErr := discordgo.MultipartBodyWithJSON(data, complexMessage.Files)
+		if encodeErr != nil {
+			return nil, encodeErr
+		}
+		response, err = d.session.RequestWithLockedBucket("POST", endpoint, contentType, body, d.session.Ratelimiter.LockBucket(endpoint), 0)
+	} else {
+		response, err = d.session.RequestWithBucketID("POST", endpoint, data, endpoint)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var m *discordgo.Message
+	err = discordgo.Unmarshal(response, &m)
+	return m, err
 }
 
 func (d *DiscordNooter) NootDeleteMessage(msgId string) {
