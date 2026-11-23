@@ -26,7 +26,8 @@ func NewDiscord(token string, commands []cmd.Command) *Discord {
 		panic(err)
 	}
 
-	session.Identify.Intents = discordgo.IntentsGuildMessages
+	// Message content is needed to read commands and to export threads
+	session.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentMessageContent
 
 	discord := &Discord{
 		liveBanners: live.NewBannerSystem(session, live.LiveBanners, 5 * time.Minute),
@@ -44,6 +45,8 @@ func (d *Discord) Listen() {
 
 	d.session.AddHandler(d.handleMessages)
 	d.session.AddHandler(d.handleMessageUpdates)
+	d.session.AddHandler(d.handleInteractions)
+	d.registerSlashCommands()
 
 	// goroutine because the scheduler will block once started
 	go d.liveBanners.Listen()
@@ -73,11 +76,7 @@ func (d *Discord) dispatch(s *discordgo.Session, m *discordgo.Message, kind stri
 		return
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovering from panic: ", r)
-		}
-	}()
+	defer logPanic()
 
 	for _, command := range d.commands {
 		prefix, postfix, found := strings.Cut(m.Content, command.Name)
@@ -104,5 +103,12 @@ func (d *Discord) dispatch(s *discordgo.Session, m *discordgo.Message, kind stri
 
 		nooter := cmd.NewDiscordNooter(m.ChannelID, m.Author.ID, d.session)
 		command.Handler.Handle(nooter, message)
+	}
+}
+
+// Deferred by event handlers, so one bad command can't take down the bot
+func logPanic() {
+	if r := recover(); r != nil {
+		fmt.Println("Recovering from panic: ", r)
 	}
 }
